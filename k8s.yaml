@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: compute
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compute
+  namespace: compute
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: compute}
+  template:
+    metadata:
+      labels: {app: compute}
+    spec:
+      containers:
+        - name: app
+          image: compute-svc:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          resources:
+            requests: {cpu: "250m", memory: "256Mi"}
+            limits: {cpu: "1000m", memory: "512Mi"}
+          readinessProbe:
+            httpGet: {path: /actuator/health/readiness, port: 8080}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /actuator/health/liveness, port: 8080}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compute
+  namespace: compute
+spec:
+  selector: {app: compute}
+  ports:
+    - port: 80
+      targetPort: 8080
