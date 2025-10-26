@@ -14,6 +14,7 @@ A pragmatic design to keep user‑visible latency and error rates stable during 
 
 ## Architecture (at a glance)
 
+```
         ┌──────────────┐          (hot ≥95%)          ┌────────────────────┐
 Users → │  NGINX  LB   │ ────────── weight 50% ─────→ │ External Buffer Svc │
         │ (outside k8s)│                             │  (HTTP → Kafka)     │
@@ -27,6 +28,10 @@ Users → │  NGINX  LB   │ ────────── weight 50% ──�
               │
               v
            App Pods
+
+Observability: vmagent scrapes node_exporter & cAdvisor → VictoriaMetrics. vmalert evaluates rules → Alertmanager → webhook to
+`lb-controller` inside k8s → SSH to NGINX host → runs toggle script (sets weights).
+```
 
 Observability: vmagent scrapes node_exporter & cAdvisor → VictoriaMetrics. vmalert evaluates rules → Alertmanager → webhook to
 `lb-controller` inside k8s → SSH to NGINX host → runs toggle script (sets weights).
