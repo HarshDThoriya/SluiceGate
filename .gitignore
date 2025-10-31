@@ -2,3 +2,4 @@ venv/
 Lib/
 target/
 Scripts/
+.vscode/

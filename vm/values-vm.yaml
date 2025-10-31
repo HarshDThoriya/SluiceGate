@@ -1,0 +1,32 @@
+vmsingle:
+  enabled: true
+  extraArgs: ["-retentionPeriod=15d"]
+
+vmagent:
+  enabled: true
+  scrapeInterval: 30s
+  additionalScrapeConfigs:
+    # Node OS metrics (CPU/mem/disk) from node_exporter
+    - job_name: "node-exporter"
+      kubernetes_sd_configs:
+        - role: endpoints
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+          regex: node-exporter|prometheus-node-exporter
+          action: keep
+
+    # Per-container metrics (CPU/mem) from kubelet cAdvisor
+    - job_name: "kubelet-cadvisor"
+      kubernetes_sd_configs:
+        - role: node
+      scheme: https
+      metrics_path: /metrics/cadvisor
+      tls_config:
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+kube-state-metrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
